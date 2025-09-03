@@ -1,0 +1,9 @@
+{
+    "CORSRules": [
+        {
+            "AllowedMethods": ["GET", "HEAD"],
+            "AllowedOrigins": ["http://localhost:5173", "http://135.148.32.163"],
+            "ExposeHeaders": ["Access-Control-Allow-Origin"]
+        }
+    ]
+}

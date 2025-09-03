@@ -1,0 +1,3045 @@
+openapi: 3.0.0
+info:
+  title: CMX Backend API
+  version: 1.0.0
+  description: Full API documentation for the CollisionMateX backend
+servers:
+  - url: http://localhost:8001
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  # --- Shop Endpoints ---
+  /shop/updateLogo:
+    post:
+      summary: Update the shop logo
+      tags: [Shop]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [shopId, shopLogo]
+              properties:
+                shopId:
+                  type: string
+                  example: S00001
+                shopLogo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Shop logo updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shop not found
+        '500':
+          description: Internal server error
+  /shop/shopRegister:
+    post:
+      summary: Register or update a shop
+      tags: [Shop]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - shopName
+                - address
+                - city
+                - state
+                - country
+                - dateFormat
+                - timeZone
+                - timeFormat
+                - fullName
+                - phone1
+              properties:
+                shopId:
+                  type: string
+                  example: S00001
+                shopName:
+                  type: string
+                  example: "My Shop"
+                address:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "New York"
+                state:
+                  type: string
+                  example: "NY"
+                zipCode:
+                  type: string
+                  example: "10001"
+                country:
+                  type: string
+                  example: "USA"
+                dateFormat:
+                  type: string
+                  example: "MM/DD/YYYY"
+                timeZone:
+                  type: string
+                  example: "America/New_York"
+                timeFormat:
+                  type: string
+                  example: "12h"
+                website:
+                  type: string
+                  example: "https://myshop.com"
+                fullName:
+                  type: string
+                  example: "John Doe"
+                phone1:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                fax:
+                  type: string
+                  example: "123-456-7890"
+                websiteStatue:
+                  type: string
+                  example: "active"
+                removeLogo:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Shop registered/updated
+  /shop/getShopRegister/{id}:
+    get:
+      summary: Get shop details
+      tags: [Shop]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+      responses:
+        '200':
+          description: Shop details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add shop fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shop not found
+  /shop/getAllCustomer/{shopId}/{page}:
+    get:
+      summary: Get all customers in a shop (paginated)
+      tags: [Shop]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+        - in: path
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+      responses:
+        '200':
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        name:
+                          type: string
+                          example: "John Doe"
+                        email:
+                          type: string
+                          example: "john@example.com"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        # Add more customer fields as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shop not found
+  /shop/searchCustomer/{page}/{pageSize}/{shopId}/{text}:
+    get:
+      summary: Search customers in a shop
+      tags: [Shop]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+        - in: path
+          name: pageSize
+          required: true
+          schema:
+            type: integer
+          description: Number of results per page
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+          description: Search text
+      responses:
+        '200':
+          description: List of matching customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        name:
+                          type: string
+                          example: "John Doe"
+                        email:
+                          type: string
+                          example: "john@example.com"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        # Add more customer fields as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shop not found
+  # --- User Endpoints ---
+  /user/login:
+    post:
+      summary: User login
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, rememberMe, shopId]
+              properties:
+                username:
+                  type: string
+                  example: "user@example.com"
+                password:
+                  type: string
+                  example: "yourpassword"
+                rememberMe:
+                  type: boolean
+                  example: false
+                shopId:
+                  type: string
+                  example: "S00001"
+      responses:
+        '200':
+          description: Login successful
+  /user/loginassistance:
+    post:
+      summary: User login assistance
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - Username
+                - shopId
+              properties:
+                Username:
+                  type: string
+                  example: "user@example.com"
+                shopId:
+                  type: string
+                  example: "S00001"
+      responses:
+        '200':
+          description: Assistance response
+  /user/userdetail/{id}:
+    get:
+      summary: Get user details
+      tags: [User]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+  /user/all/users/{shopId}:
+    get:
+      summary: Get all users of a shop
+      tags: [User]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All users of shop
+  /user/get/all/user/{shopId}:
+    get:
+      summary: Get all users (alternate)
+      tags: [User]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All users
+  /user/get/all/deactive/{page}/{shopId}:
+    get:
+      summary: Get all deactivated users
+      tags: [User]
+      parameters:
+        - in: path
+          name: page
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All deactivated users
+  /user/register:
+    post:
+      summary: Register a new user
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - email
+                - userName
+                - password
+                - firstName
+                - lastName
+              properties:
+                shopId:
+                  type: string
+                  example: S00001
+                email:
+                  type: string
+                  example: user@example.com
+                userName:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: yourpassword
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                phone:
+                  type: string
+                  example: '1234567890'
+                phone2:
+                  type: string
+                  example: '0987654321'
+                address:
+                  type: string
+                  example: '123 Main St'
+                city:
+                  type: string
+                  example: 'New York'
+                state:
+                  type: string
+                  example: 'NY'
+                zipCode:
+                  type: string
+                  example: '10001'
+                country:
+                  type: string
+                  example: 'USA'
+                hireDate:
+                  type: string
+                  format: date
+                  example: '2023-01-01'
+                terminationDate:
+                  type: string
+                  format: date
+                  example: '2024-01-01'
+                dob:
+                  type: string
+                  format: date
+                  example: '1990-01-01'
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  example: ['read', 'write']
+                notification:
+                  type: boolean
+                  example: true
+                notificationDelivery:
+                  type: string
+                  example: 'email'
+                payTerm:
+                  type: string
+                  example: 'monthly'
+                payType:
+                  type: string
+                  example: 'salary'
+                flatRate:
+                  type: number
+                  example: 1000
+                payPerHourly:
+                  type: number
+                  example: 25
+                Salary:
+                  type: number
+                  example: 50000
+                commissionCategories:
+                  type: array
+                  items:
+                    type: string
+                  example: ['category1', 'category2']
+                commissionRate:
+                  type: number
+                  example: 0.1
+                gross:
+                  type: number
+                  example: 60000
+                employeeTile:
+                  type: string
+                  example: 'Manager'
+                note1:
+                  type: string
+                  example: 'First note'
+                note2:
+                  type: string
+                  example: 'Second note'
+                activeStatue:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: User registered
+  /user/update:
+    post:
+      summary: Update an existing user
+      tags: [User]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
+                shopId:
+                  type: string
+                  example: S00001
+                email:
+                  type: string
+                  example: user@example.com
+                userName:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: yourpassword
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                phone:
+                  type: string
+                  example: '1234567890'
+                phone2:
+                  type: string
+                  example: '0987654321'
+                address:
+                  type: string
+                  example: '123 Main St'
+                city:
+                  type: string
+                  example: 'New York'
+                state:
+                  type: string
+                  example: 'NY'
+                zipCode:
+                  type: string
+                  example: '10001'
+                country:
+                  type: string
+                  example: 'USA'
+                hireDate:
+                  type: string
+                  format: date
+                  example: '2023-01-01'
+                terminationDate:
+                  type: string
+                  format: date
+                  example: '2024-01-01'
+                dob:
+                  type: string
+                  format: date
+                  example: '1990-01-01'
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  example: ['read', 'write']
+                notification:
+                  type: boolean
+                  example: true
+                notificationDelivery:
+                  type: string
+                  example: 'email'
+                payTerm:
+                  type: string
+                  example: 'monthly'
+                payType:
+                  type: string
+                  example: 'salary'
+                flatRate:
+                  type: number
+                  example: 1000
+                payPerHourly:
+                  type: number
+                  example: 25
+                Salary:
+                  type: number
+                  example: 50000
+                commissionCategories:
+                  type: array
+                  items:
+                    type: string
+                  example: ['category1', 'category2']
+                commissionRate:
+                  type: number
+                  example: 0.1
+                gross:
+                  type: number
+                  example: 60000
+                employeeTile:
+                  type: string
+                  example: 'Manager'
+                note1:
+                  type: string
+                  example: 'First note'
+                note2:
+                  type: string
+                  example: 'Second note'
+                activeStatue:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: User updated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+  # --- Customer Endpoints ---
+  /customer/register:
+    post:
+      summary: Register a new customer
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - firstName
+                - lastName
+                - phone
+                - phone2
+                - email
+                - address
+                - city
+                - state
+                - zipCode
+                - companyName
+              properties:
+                shopId:
+                  type: string
+                  example: "S00001"
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                phone:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                email:
+                  type: string
+                  example: "john@example.com"
+                address:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "New York"
+                state:
+                  type: string
+                  example: "NY"
+                zipCode:
+                  type: string
+                  example: "10001"
+                companyName:
+                  type: string
+                  example: "Doe Company"
+      responses:
+        '201':
+          description: Customer registered
+  /customer/getdetail/{id}:
+    get:
+      summary: Get customer details
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the customer
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add customer fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+  /customer/update/detail:
+    post:
+      summary: Update customer details
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+                - firstName
+                - lastName
+                - phone
+                - phone2
+                - email
+                - address
+                - city
+                - state
+                - zipCode
+                - country
+                - companyName
+              properties:
+                customerId:
+                  type: string
+                  example: "CUST001"
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                phone:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                email:
+                  type: string
+                  example: "john@example.com"
+                address:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "New York"
+                state:
+                  type: string
+                  example: "NY"
+                zipCode:
+                  type: string
+                  example: "10001"
+                country:
+                  type: string
+                  example: "USA"
+                companyName:
+                  type: string
+                  example: "Doe Company"
+      responses:
+        '200':
+          description: Customer details updated
+  # --- Customer Vehicle Endpoints ---
+  /customerVehical/register:
+    post:
+      summary: Register a new customer vehicle
+      tags: [CustomerVehicle]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+                - vin
+                - year
+                - make
+                - model
+              properties:
+                customerId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
+                vin:
+                  type: string
+                  example: "1HGCM82633A123456"
+                year:
+                  type: string
+                  example: "2023"
+                make:
+                  type: string
+                  example: "Honda"
+                model:
+                  type: string
+                  example: "Civic"
+                engine:
+                  type: string
+                  example: "1.5L Turbo"
+                exteriorColor:
+                  type: string
+                  example: "Red"
+                exteriorCode:
+                  type: string
+                  example: "R-513"
+                interiorColor:
+                  type: string
+                  example: "Black"
+                trimCode:
+                  type: string
+                  example: "BK"
+                vehicleCondition:
+                  type: string
+                  example: "Good"
+                odometer:
+                  type: string
+                  example: "25000"
+                productionDate:
+                  type: string
+                  example: "2023-01-15"
+                licensePlate:
+                  type: string
+                  example: "ABC-1234"
+                state:
+                  type: string
+                  example: "CA"
+                vehicalTow:
+                  type: boolean
+                  example: false
+                priorityDamage:
+                  type: string
+                  example: "Front Bumper"
+                milegeIn:
+                  type: string
+                  example: "25000"
+                milegeOut:
+                  type: string
+                  example: "25100"
+                country:
+                  type: string
+                  example: "USA"
+                fuelsFilled:
+                  type: string
+                  example: "Full"
+                fuelsMark:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Vehicle registered successfully
+        '400':
+          description: Bad Request - Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+        '500':
+          description: Internal server error
+  /customer/family/member/linked/{id}:
+    get:
+      summary: Get family members linked to a customer
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the customer
+      responses:
+        '200':
+          description: List of family members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        familyMemberId:
+                          type: string
+                          example: "FAM001"
+                        firstName:
+                          type: string
+                          example: "Jane"
+                        lastName:
+                          type: string
+                          example: "Doe"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        phone2:
+                          type: string
+                          example: "0987654321"
+                        email:
+                          type: string
+                          example: "jane@example.com"
+                        owner:
+                          type: string
+                          example: "Yes"
+                        driver:
+                          type: string
+                          example: "No"
+                        relationship:
+                          type: string
+                          example: "Spouse"
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+  # --- Customer Comments Endpoints ---
+  /customerComments/register:
+    post:
+      summary: Register a new comment
+      tags: [CustomerComments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Comment registered
+  # --- Vendor Endpoints ---
+  /vendor/register:
+    post:
+      summary: Register a new vendor
+      tags: [Vendor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - userName
+                - password
+                - vendorName
+                - vendorFirstName
+                - vendorLastName
+                - vendorPhoneMain
+                - vendorEmail
+              properties:
+                shopId:
+                  type: string
+                  example: S00001
+                userName:
+                  type: string
+                  example: vendoruser
+                password:
+                  type: string
+                  example: vendorpassword
+                vendorName:
+                  type: string
+                  example: "Vendor Inc."
+                vendorFirstName:
+                  type: string
+                  example: "Alice"
+                vendorLastName:
+                  type: string
+                  example: "Smith"
+                vendorPhoneMain:
+                  type: string
+                  example: "1234567890"
+                vendorPhoneDirect:
+                  type: string
+                  example: "0987654321"
+                vendorEmail:
+                  type: string
+                  example: "vendor@example.com"
+                vendorWebsite:
+                  type: string
+                  example: "https://vendor.com"
+                vendorAddress:
+                  type: string
+                  example: "456 Vendor St"
+                vendorCity:
+                  type: string
+                  example: "Los Angeles"
+                vendorState:
+                  type: string
+                  example: "CA"
+                vendorZipCode:
+                  type: string
+                  example: "90001"
+                VendorType:
+                  type: string
+                  example: "Parts Supplier"
+                vendorDealerShipBrand:
+                  type: string
+                  example: "Toyota"
+      responses:
+        '201':
+          description: Vendor registered
+  /vendor/login:
+    post:
+      summary: Vendor login
+      tags: [Vendor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - Username
+                - password
+                - shopId
+              properties:
+                Username:
+                  type: string
+                  example: "vendoruser"
+                password:
+                  type: string
+                  example: "vendorpassword"
+                shopId:
+                  type: string
+                  example: "S00001"
+      responses:
+        '200':
+          description: Login successful
+  /vendor/detail/{vendorId}:
+    get:
+      summary: Get vendor details
+      tags: [Vendor]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema:
+            type: string
+          description: The ID of the vendor
+      responses:
+        '200':
+          description: Vendor details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add vendor fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Vendor not found
+  /vendor/logout:
+    post:
+      summary: Vendor logout
+      tags: [Vendor]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - userName
+              properties:
+                shopId:
+                  type: string
+                  example: "S00001"
+                userName:
+                  type: string
+                  example: "vendoruser"
+      responses:
+        '200':
+          description: Vendor logged out
+  /vendor/sms/change:
+    post:
+      summary: Change vendor SMS settings
+      tags: [Vendor]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendorId:
+                  type: string
+                  example: "VEND001"
+                smsNumber:
+                  type: string
+                  example: "1234567890"
+      responses:
+        '200':
+          description: Vendor SMS settings changed
+  /vendor/password/change:
+    post:
+      summary: Change vendor password
+      tags: [Vendor]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - userId
+                - token
+              properties:
+                newPassword:
+                  type: string
+                  example: "newpassword123"
+                userId:
+                  type: string
+                  example: "VEND001"
+                token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Vendor password changed
+  /vendor/update:
+    post:
+      summary: Update vendor details
+      tags: [Vendor]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vendorId
+              properties:
+                vendorId:
+                  type: string
+                  example: "VEND001"
+                vendorName:
+                  type: string
+                  example: "Vendor Inc."
+                vendorFirstName:
+                  type: string
+                  example: "Alice"
+                vendorLastName:
+                  type: string
+                  example: "Smith"
+                vendorPhoneMain:
+                  type: string
+                  example: "1234567890"
+                vendorPhoneDirect:
+                  type: string
+                  example: "0987654321"
+                vendorEmail:
+                  type: string
+                  example: "vendor@example.com"
+                vendorWebsite:
+                  type: string
+                  example: "https://vendor.com"
+                vendorAddress:
+                  type: string
+                  example: "456 Vendor St"
+                vendorCity:
+                  type: string
+                  example: "Los Angeles"
+                vendorState:
+                  type: string
+                  example: "CA"
+                vendorZipCode:
+                  type: string
+                  example: "90001"
+                VendorType:
+                  type: string
+                  example: "Parts Supplier"
+                vendorDealerShipBrand:
+                  type: string
+                  example: "Toyota"
+      responses:
+        '200':
+          description: Vendor updated
+  # --- Estimate Profile Endpoints ---
+  /estimateProfile/register:
+    post:
+      summary: Register a new estimate profile
+      tags: [EstimateProfile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - customerId
+                - vehicalId
+                - firstName
+                - lastName
+                - year
+                - make
+                - model
+                - vin
+                - estimator
+                - total
+                - estimatorDate
+                - phone
+                - address
+                - city
+                - state
+                - zipCode
+                - country
+                - staffId
+              properties:
+                shopId:
+                  type: string
+                  example: S00001
+                customerId:
+                  type: string
+                  example: CUST001
+                vehicalId:
+                  type: string
+                  example: VEH001
+                owner:
+                  type: string
+                  example: "John Owner"
+                driver:
+                  type: string
+                  example: "Jane Driver"
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                year:
+                  type: integer
+                  example: 2020
+                make:
+                  type: string
+                  example: "Toyota"
+                model:
+                  type: string
+                  example: "Camry"
+                vin:
+                  type: string
+                  example: "1HGCM82633A123456"
+                insurance:
+                  type: string
+                  example: "Geico"
+                estimator:
+                  type: string
+                  example: "Estimator Name"
+                total:
+                  type: number
+                  example: 5000.00
+                estimatorDate:
+                  type: string
+                  format: date
+                  example: "2024-07-01"
+                phone:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                email:
+                  type: string
+                  example: "john.doe@example.com"
+                address:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "New York"
+                state:
+                  type: string
+                  example: "NY"
+                zipCode:
+                  type: string
+                  example: "10001"
+                country:
+                  type: string
+                  example: "USA"
+                companyName:
+                  type: string
+                  example: "Doe Company"
+                staffId:
+                  type: string
+                  example: STAFF001
+      responses:
+        '201':
+          description: Estimate profile registered
+  /estimateProfile/get/all/{ShopId}/{limit}:
+    get:
+      summary: Get all estimate profiles for a shop
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ShopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: limit
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of estimate profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        estimateProfileId:
+                          type: string
+                          example: "EST123"
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        vehicalId:
+                          type: string
+                          example: "VEH001"
+                        owner:
+                          type: string
+                          example: "John Owner"
+                        driver:
+                          type: string
+                          example: "Jane Driver"
+                        firstName:
+                          type: string
+                          example: "John"
+                        lastName:
+                          type: string
+                          example: "Doe"
+                        year:
+                          type: integer
+                          example: 2020
+                        make:
+                          type: string
+                          example: "Toyota"
+                        model:
+                          type: string
+                          example: "Camry"
+                        vin:
+                          type: string
+                          example: "1HGCM82633A123456"
+                        insurance:
+                          type: string
+                          example: "Geico"
+                        estimator:
+                          type: string
+                          example: "Estimator Name"
+                        total:
+                          type: number
+                          example: 5000.00
+                        estimatorDate:
+                          type: string
+                          format: date
+                          example: "2024-07-01"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        phone2:
+                          type: string
+                          example: "0987654321"
+                        email:
+                          type: string
+                          example: "john.doe@example.com"
+                        address:
+                          type: string
+                          example: "123 Main St"
+                        city:
+                          type: string
+                          example: "New York"
+                        state:
+                          type: string
+                          example: "NY"
+                        zipCode:
+                          type: string
+                          example: "10001"
+                        country:
+                          type: string
+                          example: "USA"
+                        companyName:
+                          type: string
+                          example: "Doe Company"
+                        staffId:
+                          type: string
+                          example: "STAFF001"
+                        # Add other estimate profile fields as needed
+  /estimateProfile/search/{shopId}/{text}:
+    get:
+      summary: Search estimate profiles in a shop
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matching estimate profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        estimateProfileId:
+                          type: string
+                          example: "EST123"
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        vehicalId:
+                          type: string
+                          example: "VEH001"
+                        owner:
+                          type: string
+                          example: "John Owner"
+                        driver:
+                          type: string
+                          example: "Jane Driver"
+                        firstName:
+                          type: string
+                          example: "John"
+                        lastName:
+                          type: string
+                          example: "Doe"
+                        year:
+                          type: integer
+                          example: 2020
+                        make:
+                          type: string
+                          example: "Toyota"
+                        model:
+                          type: string
+                          example: "Camry"
+                        vin:
+                          type: string
+                          example: "1HGCM82633A123456"
+                        insurance:
+                          type: string
+                          example: "Geico"
+                        estimator:
+                          type: string
+                          example: "Estimator Name"
+                        total:
+                          type: number
+                          example: 5000.00
+                        estimatorDate:
+                          type: string
+                          format: date
+                          example: "2024-07-01"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        phone2:
+                          type: string
+                          example: "0987654321"
+                        email:
+                          type: string
+                          example: "john.doe@example.com"
+                        address:
+                          type: string
+                          example: "123 Main St"
+                        city:
+                          type: string
+                          example: "New York"
+                        state:
+                          type: string
+                          example: "NY"
+                        zipCode:
+                          type: string
+                          example: "10001"
+                        country:
+                          type: string
+                          example: "USA"
+                        companyName:
+                          type: string
+                          example: "Doe Company"
+                        staffId:
+                          type: string
+                          example: "STAFF001"
+                        # Add other estimate profile fields as needed
+  /estimateProfile/update:
+    post:
+      summary: Update an estimate profile
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimateProfileId:
+                  type: string
+                  example: "EST123"
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                phone:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                email:
+                  type: string
+                  example: "john.doe@example.com"
+                address:
+                  type: string
+                  example: "123 Main St"
+                city:
+                  type: string
+                  example: "New York"
+                state:
+                  type: string
+                  example: "NY"
+                zipCode:
+                  type: string
+                  example: "10001"
+                country:
+                  type: string
+                  example: "USA"
+                companyName:
+                  type: string
+                  example: "Doe Company"
+                vehicalDrivable:
+                  type: boolean
+                  example: true
+                year:
+                  type: integer
+                  example: 2020
+                needsTow:
+                  type: boolean
+                  example: false
+                make:
+                  type: string
+                  example: "Toyota"
+                model:
+                  type: string
+                  example: "Camry"
+                exteriorColor:
+                  type: string
+                  example: "Red"
+                payForDamage:
+                  type: boolean
+                  example: true
+                insurance:
+                  type: string
+                  example: "Geico"
+                claim:
+                  type: string
+                  example: "CLM12345"
+                dateOfLoss:
+                  type: string
+                  format: date
+                  example: "2024-07-01"
+                deductible:
+                  type: number
+                  example: 500.00
+                insurancePhone:
+                  type: string
+                  example: "1112223333"
+                insurancePhone2:
+                  type: string
+                  example: "4445556666"
+                insuranceEmail:
+                  type: string
+                  example: "adjuster@geico.com"
+                insuranceAdjusterName:
+                  type: string
+                  example: "Jane Adjuster"
+                repairVehical:
+                  type: boolean
+                  example: true
+                howSoon:
+                  type: string
+                  example: "ASAP"
+                beenHereBefore:
+                  type: boolean
+                  example: false
+                reference:
+                  type: string
+                  example: "Friend"
+                estimateToken:
+                  type: string
+                  example: "TOKEN123"
+      responses:
+        '200':
+          description: Estimate profile updated
+  /estimateProfile/photo/upload:
+    post:
+      summary: Upload photos for an estimate profile
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                estimateProfileId:
+                  type: string
+                  example: "EST123"
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Photo uploaded
+  /estimateProfile/extraPhoto:
+    post:
+      summary: Add extra photo to estimate profile
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                estimateProfileId:
+                  type: string
+                  example: "EST123"
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Extra photo added
+  /estimateProfile/archived/{shopId}:
+    get:
+      summary: Get archived estimate profiles for a shop
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of archived estimate profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        estimateProfileId:
+                          type: string
+                          example: "EST123"
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        vehicalId:
+                          type: string
+                          example: "VEH001"
+                        owner:
+                          type: string
+                          example: "John Owner"
+                        driver:
+                          type: string
+                          example: "Jane Driver"
+                        firstName:
+                          type: string
+                          example: "John"
+                        lastName:
+                          type: string
+                          example: "Doe"
+                        year:
+                          type: integer
+                          example: 2020
+                        make:
+                          type: string
+                          example: "Toyota"
+                        model:
+                          type: string
+                          example: "Camry"
+                        vin:
+                          type: string
+                          example: "1HGCM82633A123456"
+                        insurance:
+                          type: string
+                          example: "Geico"
+                        estimator:
+                          type: string
+                          example: "Estimator Name"
+                        total:
+                          type: number
+                          example: 5000.00
+                        estimatorDate:
+                          type: string
+                          format: date
+                          example: "2024-07-01"
+                        phone:
+                          type: string
+                          example: "1234567890"
+                        phone2:
+                          type: string
+                          example: "0987654321"
+                        email:
+                          type: string
+                          example: "john.doe@example.com"
+                        address:
+                          type: string
+                          example: "123 Main St"
+                        city:
+                          type: string
+                          example: "New York"
+                        state:
+                          type: string
+                          example: "NY"
+                        zipCode:
+                          type: string
+                          example: "10001"
+                        country:
+                          type: string
+                          example: "USA"
+                        companyName:
+                          type: string
+                          example: "Doe Company"
+                        staffId:
+                          type: string
+                          example: "STAFF001"
+                        # Add other estimate profile fields as needed
+  /estimateProfile/paymentAmount:
+    post:
+      summary: Add or update payment amount for an estimate profile
+      tags: [EstimateProfile]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimateProfileId:
+                  type: string
+                  example: "EST123"
+                amount:
+                  type: number
+                  example: 1000.00
+      responses:
+        '200':
+          description: Payment amount updated
+  # Add similar blocks for all other endpoints in your list, such as:
+  # /estimateProfile/getAllInAYear, /estimateProfile/getCustomer, /estimateProfile/esignature, etc.
+  # --- Repair Order Endpoints ---
+  /repairOrder/register:
+    post:
+      summary: Register a new repair order from an estimate
+      tags: [RepairOrder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimateId:
+                  type: string
+                  example: "EST123"
+      responses:
+        '200':
+          description: Repair order created
+  /repairOrder/register/new/estimate:
+    post:
+      summary: Register a new repair order directly (creates estimate and repair order)
+      tags: [RepairOrder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                  example: "CUST123"
+                vehicalId:
+                  type: string
+                  example: "VEH123"
+                shopId:
+                  type: string
+                  example: "SHOP123"
+      responses:
+        '200':
+          description: Repair order created directly
+  /repairOrder/estimate/customer/Vehical/data/{id}:
+    get:
+      summary: Get customer and vehicle data for a repair order
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer and vehicle data
+  /repairOrder/get/all/{ShopId}/{limit}:
+    get:
+      summary: Get all repair orders for a shop
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: ShopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: limit
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: All repair orders
+  /repairOrder/search/{ShopId}/{text}:
+    get:
+      summary: Search repair orders in a shop
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: ShopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+  /repairOrder/New/Repair/Oreder/{estimateId}:
+    get:
+      summary: Create a new repair order from an existing estimate
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: New repair order created
+  /repairOrder/Archived/{repairId}:
+    get:
+      summary: Archive a repair order
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: repairId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Repair order archived
+  /repairOrder/get/all/Archived/{limit}/{ShopId}:
+    get:
+      summary: Get all archived repair orders for a shop
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: limit
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: ShopId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All archived repair orders
+  /repairOrder/get/search/Archived/{ShopId}/{text}:
+    get:
+      summary: Search archived repair orders in a shop
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: ShopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results for archived repair orders
+  /repairOrder/get/filter/{shopId}/{Estimator}/{Months}/{Year}:
+    get:
+      summary: Filter repair orders by estimator and date
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: Estimator
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: Months
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: Year
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Filtered repair orders
+  /repairOrder/get/Insurance/{shopId}/{text}:
+    get:
+      summary: Search repair orders by insurance
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Repair orders by insurance
+  /repairOrder/get/days/repair/{shopId}/{days}:
+    get:
+      summary: Get repair orders by days filter
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: days
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Repair orders by days
+  /repairOrder/all/Filter/{shopId}/{limit}:
+    post:
+      summary: Filter repair orders with advanced options
+      tags: [RepairOrder]
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: limit
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimatro:
+                  type: string
+                  example: "ESTIMATOR_ID"
+                insuranceSearch:
+                  type: string
+                  example: "Insurance Name"
+                days:
+                  type: integer
+                  example: 30
+      responses:
+        '200':
+          description: Filtered repair orders
+  # --- Payment Endpoints ---
+  /payment/register:
+    post:
+      summary: Register a new payment
+      tags: [Payment]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Payment registered
+  /payment/get/all/{estimateId}:
+    get:
+      summary: Get all payments for an estimate
+      tags: [Payment]
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All payments for estimate
+  # --- Insurance Endpoints ---
+  /insurance/register:
+    post:
+      summary: Register a new insurance
+      tags: [Insurance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - estimateId
+                - staffId
+                - policy
+                - claim
+                - dateOfLoss
+                - deductible
+                - lossType
+                - InsuredOrClaimant
+                - InsuranceName
+                - phone1
+                - phone2
+                - email
+                - AdjusterName
+                - InsuranceAddress
+                - City
+                - State
+                - ZipCode
+                - Country
+                - Company
+                - companyPhone1
+                - companyPhone2
+                - companyEmail
+                - companyAppraiserName
+              properties:
+                estimateId:
+                  type: string
+                  example: "EST123"
+                staffId:
+                  type: string
+                  example: "STAFF123"
+                policy:
+                  type: string
+                  example: "POLICY123"
+                claim:
+                  type: string
+                  example: "CLM12345"
+                dateOfLoss:
+                  type: string
+                  format: date
+                  example: "2024-07-01"
+                deductible:
+                  type: number
+                  example: 500.00
+                lossType:
+                  type: string
+                  example: "Collision"
+                InsuredOrClaimant:
+                  type: string
+                  example: "Insured"
+                InsuranceName:
+                  type: string
+                  example: "Geico"
+                phone1:
+                  type: string
+                  example: "1112223333"
+                phone2:
+                  type: string
+                  example: "4445556666"
+                email:
+                  type: string
+                  example: "adjuster@geico.com"
+                AdjusterName:
+                  type: string
+                  example: "Jane Adjuster"
+                InsuranceAddress:
+                  type: string
+                  example: "123 Insurance St"
+                City:
+                  type: string
+                  example: "New York"
+                State:
+                  type: string
+                  example: "NY"
+                ZipCode:
+                  type: string
+                  example: "10001"
+                Country:
+                  type: string
+                  example: "USA"
+                Company:
+                  type: string
+                  example: "Geico Holdings"
+                companyPhone1:
+                  type: string
+                  example: "5551112222"
+                companyPhone2:
+                  type: string
+                  example: "5553334444"
+                companyEmail:
+                  type: string
+                  example: "info@geico.com"
+                companyAppraiserName:
+                  type: string
+                  example: "John Appraiser"
+      responses:
+        '201':
+          description: Insurance registered
+  /insurance/details/{estimateId}:
+    get:
+      summary: Get insurance details by estimate ID
+      tags: [Insurance]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+          description: The ID of the estimate
+      responses:
+        '200':
+          description: Insurance details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add insurance fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Insurance not found
+
+  /insurance/all/shop/insurance/{shopId}:
+    get:
+      summary: Get all insurance records for a shop
+      tags: [Insurance]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+      responses:
+        '200':
+          description: List of insurance records for the shop
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      # Add insurance fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: No insurance records found for shop
+  # --- FolderxDates Endpoints ---
+  /folderxDates/register:
+    post:
+      summary: Register folder x dates
+      tags: [FolderxDates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - estimateId
+                - appTowDrop
+                - appointmentDate
+                - vehicalArrivalDate
+                - authorizationSigned
+                - customerRentalCompany
+                - totalJobHour
+                - cycleTime
+                - daysForParts
+                - targetDate
+                - pickupDate
+                - customerNotified
+                - vehicalDelivered
+                - appointmentDateCheck
+                - vehicalArrivalDateCheck
+                - authorizationSignedCheck
+                - customerRentalCompanyCheck
+                - targetDateCheck
+                - pickupDateCheck
+                - customerNotifiedCheck
+                - vehicalDeliveredCheck
+                - appTowDropCheck
+                - totalJobHourCheck
+                - cycleTimeCheck
+                - daysForPartsCheck
+              properties:
+                estimateId:
+                  type: string
+                  example: "EST123"
+                appTowDrop:
+                  type: string
+                  example: "2024-07-01T10:00:00Z"
+                appointmentDate:
+                  type: string
+                  example: "2024-07-02T09:00:00Z"
+                vehicalArrivalDate:
+                  type: string
+                  example: "2024-07-03T08:00:00Z"
+                authorizationSigned:
+                  type: string
+                  example: "2024-07-04T11:00:00Z"
+                customerRentalCompany:
+                  type: string
+                  example: "RentalCo"
+                totalJobHour:
+                  type: number
+                  example: 12
+                cycleTime:
+                  type: number
+                  example: 5
+                daysForParts:
+                  type: number
+                  example: 3
+                targetDate:
+                  type: string
+                  example: "2024-07-10T17:00:00Z"
+                pickupDate:
+                  type: string
+                  example: "2024-07-11T15:00:00Z"
+                customerNotified:
+                  type: string
+                  example: "2024-07-09T14:00:00Z"
+                vehicalDelivered:
+                  type: string
+                  example: "2024-07-12T13:00:00Z"
+                appointmentDateCheck:
+                  type: boolean
+                  example: true
+                vehicalArrivalDateCheck:
+                  type: boolean
+                  example: true
+                authorizationSignedCheck:
+                  type: boolean
+                  example: true
+                customerRentalCompanyCheck:
+                  type: boolean
+                  example: true
+                targetDateCheck:
+                  type: boolean
+                  example: true
+                pickupDateCheck:
+                  type: boolean
+                  example: true
+                customerNotifiedCheck:
+                  type: boolean
+                  example: true
+                vehicalDeliveredCheck:
+                  type: boolean
+                  example: true
+                appTowDropCheck:
+                  type: boolean
+                  example: true
+                totalJobHourCheck:
+                  type: boolean
+                  example: true
+                cycleTimeCheck:
+                  type: boolean
+                  example: true
+                daysForPartsCheck:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Folder x dates registered
+  /folderxDates/get/Dates/{estimateId}:
+    get:
+      summary: Get folder x dates by estimate ID
+      tags: [FolderxDates]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+          description: The ID of the estimate
+      responses:
+        '200':
+          description: Folder x dates details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add folder x dates fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Folder x dates not found
+
+  /folderxDates/update/{datesId}:
+    post:
+      summary: Update folder x dates by dates ID
+      tags: [FolderxDates]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: datesId
+          required: true
+          schema:
+            type: string
+          description: The ID of the folder x dates record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimateId:
+                  type: string
+                  example: "60d21b4667d0d8992e610c85"
+                appTowDrop:
+                  type: string
+                  enum: ["Appointment", "Tow", "Drop"]
+                  example: "Appointment"
+                appointmentDate:
+                  type: string
+                  example: "2024-07-25"
+                vehicalArrivalDate:
+                  type: string
+                  example: "2024-07-26"
+                authorizationSigned:
+                  type: string
+                  example: "Signed"
+                customerRentalCompany:
+                  type: string
+                  example: "Hertz"
+                totalJobHour:
+                  type: string
+                  example: "16"
+                cycleTime:
+                  type: string
+                  example: "2 days"
+                daysForParts:
+                  type: string
+                  example: "1 day"
+                targetDate:
+                  type: string
+                  example: "2024-07-28"
+                pickupDate:
+                  type: string
+                  example: "2024-07-29"
+                customerNotified:
+                  type: string
+                  example: "Notified"
+                vehicalDelivered:
+                  type: string
+                  example: "Delivered"
+                appointmentDateCheck:
+                  type: boolean
+                  example: true
+                vehicalArrivalDateCheck:
+                  type: boolean
+                  example: false
+                authorizationSignedCheck:
+                  type: boolean
+                  example: true
+                customerRentalCompanyCheck:
+                  type: boolean
+                  example: false
+                targetDateCheck:
+                  type: boolean
+                  example: true
+                pickupDateCheck:
+                  type: boolean
+                  example: false
+                customerNotifiedCheck:
+                  type: boolean
+                  example: true
+                vehicalDeliveredCheck:
+                  type: boolean
+                  example: false
+                appTowDropCheck:
+                  type: boolean
+                  example: true
+                totalJobHourCheck:
+                  type: boolean
+                  example: false
+                cycleTimeCheck:
+                  type: boolean
+                  example: true
+                daysForPartsCheck:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Folder x dates updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Folder x dates not found
+  # --- Estimate Chat Link Endpoints ---
+  /estimateChatLink/register:
+    post:
+      summary: Register a new estimate chat link
+      tags: [EstimateChatLink]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - estimateToken
+                - message
+              properties:
+                role:
+                  type: string
+                  example: "customer"
+                estimateToken:
+                  type: string
+                  example: "ESTTOKEN123"
+                message:
+                  type: string
+                  example: "Hello, this is a chat message."
+      responses:
+        '201':
+          description: Estimate chat link registered
+  /estimateChatLink/getChatLink/{estimateToken}:
+    get:
+      summary: Get chat link by estimate token
+      tags: [EstimateChatLink]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: estimateToken
+          required: true
+          schema:
+            type: string
+          description: The estimate token
+      responses:
+        '200':
+          description: Chat link details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add chat link fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Chat link not found
+
+  /estimateChatLink/get/All/Customer/{shopId}:
+    get:
+      summary: Get all chat customers for a shop
+      tags: [EstimateChatLink]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+      responses:
+        '200':
+          description: List of chat customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      # Add customer chat fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: No chat customers found
+
+  /estimateChatLink/Update/Seen/{estimateToken}/{role}:
+    get:
+      summary: Update chat seen status by estimate token and role
+      tags: [EstimateChatLink]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: estimateToken
+          required: true
+          schema:
+            type: string
+          description: The estimate token
+        - in: path
+          name: role
+          required: true
+          schema:
+            type: string
+          description: The role (e.g., customer, staff)
+      responses:
+        '200':
+          description: Seen status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Chat link not found
+
+  /estimateChatLink/unseen/chat/{shopId}:
+    get:
+      summary: Get all unseen chats for a shop
+      tags: [EstimateChatLink]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+      responses:
+        '200':
+          description: List of unseen chats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      # Add unseen chat fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: No unseen chats found
+
+  /estimateChatLink/doc/upload/{estimateId}:
+    post:
+      summary: Upload document to chat link by estimate ID
+      tags: [EstimateChatLink]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+          description: The ID of the estimate
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The document file to upload
+      responses:
+        '200':
+          description: Document uploaded
+        '401':
+          description: Unauthorized
+        '404':
+          description: Estimate not found
+  # --- Documents Endpoints ---
+  /documents/register/{estimateId}/{staffId}:
+    post:
+      summary: Register a new document
+      tags: [Documents]
+      parameters:
+        - in: path
+          name: estimateId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Document registered
+  # --- Add more endpoints for each router following this pattern ---
+  /staff/register:
+    post:
+      summary: Register a new staff member
+      tags: [Staff]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - folderxId
+                - Estimator
+                - BodyTechnician
+                - PainterTechnician
+                - FrameTechnician
+                - DetailTechnician
+                - Office
+                - ProductionManagement
+              properties:
+                folderxId:
+                  type: string
+                  example: "FOLDERX123"
+                Estimator:
+                  type: string
+                  example: "John Doe"
+                BodyTechnician:
+                  type: string
+                  example: "Jane Smith"
+                PainterTechnician:
+                  type: string
+                  example: "Bob Painter"
+                FrameTechnician:
+                  type: string
+                  example: "Alice Frame"
+                DetailTechnician:
+                  type: string
+                  example: "Mike Detail"
+                Office:
+                  type: string
+                  example: "Office Staff"
+                ProductionManagement:
+                  type: string
+                  example: "Production Manager"
+      responses:
+        '201':
+          description: Staff registered
+
+  /staff/user/data/{id}:
+    get:
+      summary: Get staff user details by ID
+      tags: [Staff]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the staff user
+      responses:
+        '200':
+          description: Staff user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add staff user fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Staff user not found
+  /customer/{id}/{text}/{page}:
+    get:
+      summary: Search customers in a shop by text and page
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+        - in: path
+          name: text
+          required: true
+          schema:
+            type: string
+          description: Search text
+        - in: path
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+      responses:
+        '200':
+          description: List of matching customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        name:
+                          type: string
+                          example: "John Doe"
+                        email:
+                          type: string
+                          example: "john@example.com"
+                        phone:
+                          type: string
+                          example: "1234567890"
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+  /customer/shopid/{shopId}/{page}:
+    get:
+      summary: Get all customers of a shop (paginated)
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shopId
+          required: true
+          schema:
+            type: string
+          description: The ID of the shop
+        - in: path
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page number for pagination
+      responses:
+        '200':
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          type: string
+                          example: "CUST001"
+                        name:
+                          type: string
+                          example: "John Doe"
+                        email:
+                          type: string
+                          example: "john@example.com"
+                        phone:
+                          type: string
+                          example: "1234567890"
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+  /customer/search/Customers/{customerId}:
+    get:
+      summary: Search customer by customerId
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema:
+            type: string
+          description: The ID of the customer
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    # Add customer fields here as needed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Customer not found
+  /customer/link/customer/member:
+    post:
+      summary: Link a customer member
+      tags: [Customer]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - shopId
+                - customerId
+                - firstName
+                - lastName
+                - phone
+                - phone2
+                - email
+              properties:
+                id:
+                  type: string
+                  example: "MEM001"
+                shopId:
+                  type: string
+                  example: "S00001"
+                customerId:
+                  type: string
+                  example: "CUST001"
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                phone:
+                  type: string
+                  example: "1234567890"
+                phone2:
+                  type: string
+                  example: "0987654321"
+                email:
+                  type: string
+                  example: "john@example.com"
+      responses:
+        '200':
+          description: Customer member linked

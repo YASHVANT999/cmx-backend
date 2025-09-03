@@ -1,0 +1,59 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+before_script:
+  # Install SSH client and any other tools needed
+  - apk add --no-cache openssh-client
+  # Login to GitLab Container Registry using CI token
+  - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+# Build the Docker image
+build:
+  stage: build
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  only:
+    - main
+
+# Deploy the Docker image to the server
+deploy:
+  stage: deploy
+  before_script:
+    - mkdir -p /root/.ssh
+    - echo "$DEPLOY_SSH_KEY" > /root/.ssh/id_rsa
+    - chmod 700 /root/.ssh
+    - chmod 600 /root/.ssh/id_rsa
+    - eval $(ssh-agent -s)
+    - ssh-add /root/.ssh/id_rsa
+    - ssh-keyscan -H 135.148.32.163 >> /root/.ssh/known_hosts
+  script:
+    # Try different authentication methods for GitLab Container Registry
+    # Method 1: CI token
+    - ssh root@135.148.32.163 "echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY" || true
+    # Method 2: Personal access token
+    - ssh root@135.148.32.163 "echo '$GITLAB_ACCESS_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY" || true
+    # Method 3: Deploy token
+    - ssh root@135.148.32.163 "echo '$GITLAB_DEPLOY_TOKEN' | docker login -u '$GITLAB_DEPLOY_TOKEN_USER' --password-stdin $CI_REGISTRY" || true
+    - ssh root@135.148.32.163 "docker pull $CI_REGISTRY_IMAGE:latest"
+    - ssh root@135.148.32.163 "docker stop backend || true"
+    - ssh root@135.148.32.163 "docker rm backend || true"
+    - ssh root@135.148.32.163 "docker run -d --name backend -p 8001:8001 $CI_REGISTRY_IMAGE:latest"
+    - ssh root@135.148.32.163 "sleep 5"
+    - ssh root@135.148.32.163 "docker ps -a"
+    - ssh root@135.148.32.163 "docker logs --tail 100 backend"
+    - ssh root@135.148.32.163 "docker inspect backend --format='{{.State.Status}}'"
+  environment:
+    name: production
+  only:
+    - main
